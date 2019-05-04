@@ -158,56 +158,74 @@ public class MyWorld extends World {
         System.out.println("  Avg life time: " + avgLifeTime + " turns");
 
 
+        // Create a total fitness value that can be used to express the
+        // probability of a creature being choosen out of 1.
         float total_fitness = 0;
         for (MyCreature creature : old_population) {
             total_fitness += fitness(creature);
         }
 
-        float[] creature_upper_limit = new float[numCreatures];
+        float[] creature_probabilities = new float[numCreatures];
 
+        // Gives each creature a probability out of 1 of being selected based on
+        // the fitness of the creature, this is the roulette wheel idea.
         for (int i = 0; i < numCreatures; i++) {
-            creature_upper_limit[i] = fitness(old_population[i]) / total_fitness;
-        }
-       
-        for (int i = 0; i < numCreatures; i++) {
-            float first = r.nextFloat();
-            float second = r.nextFloat();
-
-            float cummulative = 0.0;
-
-            while (cummulative < first) {
-                cummulative += creature_upper_limit[i
-                                                    }
-         
-            }
-     
-            // Having some way of measuring the fitness, you should implement a proper
-            // parent selection method here and create a set of new creatures.  You need
-            // to create numCreatures of the new creatures.  If you'd like to implement
-            // elitism, you can use old creatures in the next generation.  This
-            // example code uses all the creatures from the old generation in the
-            // new generation.
-            for(int i=0;i<numCreatures; i++) {
-                new_population[i] = old_population[i];
-            }
-     
-     
-            // Return new population of cratures.
-            return new_population;
+            creature_probabilities[i] = fitness(old_population[i]) / total_fitness;
         }
 
-        public float fitness(Creature c) {
-            int fitness = 0;
+        // elitism_probability will give a value from (-0.95, 0.5) so there will
+        // be a 1/20 change of it being greater than 0.
+        float elitism_probabilty = r.nextFloat() - 0.95;
 
-            if (c.isDead()) {
-                fitness += c.timeOfDeath();
-                fitness += c.getEnergy();
+        for (int i = 0; i < numCreatures; i++) {
+            if (elitism_probabilty > 0) {
+                new_population[i] = chooseParent(old_population, creature_probabilities);
             } else {
-                fitness += 2 * c.getEnergy();
-                fitness += 100;
+                MyCreature mother = chooseParent(old_population, creature_probabilities);
+                MyCreature farther = chooseParent(old_population, creature_probabilities);
+                new_population[i] = new MyCreature(mother, farther);
             }
-            return fitness;
         }
-    
-  
+        return new_population;
     }
+
+
+    /* fitness provides a score of the success of each creature from the previous
+       round. Only the relative value of the fitness is relevent because the entire
+       distribution will be compressed to the range of 0 - 1.
+    */
+    public float fitness(Creature c) {
+        int fitness = 0;
+
+        if (c.isDead()) {
+            fitness += c.timeOfDeath();
+            fitness += c.getEnergy();
+        } else {
+            fitness += 2 * c.getEnergy();
+            fitness += 100;
+        }
+        return fitness;
+    }
+
+
+    /* chooseParent performs a spin of the roulette wheel to return a radomly
+       selected parent with the probabilities of parents being selected beings
+       weighted by the fitness function as given in creature_probabilities array.
+
+       This method essentially spins the roulette wheel and then checks one by one
+       the slice of the wheel of each creature to see if the wheel 'choose' that
+       creature.
+    */
+    public MyCreature chooseParent(MyCreature[] old_population, float[] creature_probabilities) {
+
+        float cummulative_probability = 0.0;
+
+        for (int i = 0; i < numCreatures; i++) {
+            float roulette_spin = r.nextFloat();
+            cummulative_probability += creature_probabilities[i];
+            if (roulette_spin < cummulative_probability) {
+                return old_populations[i];
+            }
+        }
+    }
+}

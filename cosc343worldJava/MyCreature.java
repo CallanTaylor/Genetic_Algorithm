@@ -42,6 +42,7 @@ public class MyCreature extends Creature {
     }
 
 
+    
     public MyCreature(MyCreature mother, MyCreature farther) {
         chomosome = new float[CHROMOSOME_SIZE];
 
