@@ -2,57 +2,123 @@ import cosc343.assig2.Creature;
 import java.util.Random;
 
 /**
-* The MyCreate extends the cosc343 assignment 2 Creature.  Here you implement
-* creatures chromosome and the agent function that maps creature percepts to
-* actions.  
-*
-* @author  
-* @version 1.0
-* @since   2017-04-05 
-*/
+ * The MyCreate extends the cosc343 assignment 2 Creature.  Here you implement
+ * creatures chromosome and the agent function that maps creature percepts to
+ * actions.  
+ *
+ * @author  
+ * @version 1.0
+ * @since   2017-04-05 
+ */
 public class MyCreature extends Creature {
 
-  // Random number generator
-  Random rand = new Random();
+    // Random number generator
+    Random rand = new Random();
+    private int[] chromosome;
 
-  /* Empty constructor - might be a good idea here to put the code that 
-   initialises the chromosome to some random state   
-  
-   Input: numPercept - number of percepts that creature will be receiving
-          numAction - number of action output vector that creature will need
-                      to produce on every turn
-  */
-  public MyCreature(int numPercepts, int numActions) {
+    private static final int CHROMOSOME_SIZE = 7;
 
-  }
+    private static final int ENEMY = 0;
+    private static final int FRIEND = 1;
+    private static final int EMPTY = 2;
+    private static final int FIND_FOOD = 3;
+    private static final int EXPLORE = 4;
+    private static final int EAT_GREEN = 5;
+    private static final int EAT_RED = 6;
+
+    /* Empty constructor - might be a good idea here to put the code that 
+       initialises the chromosome to some random state   
   
-  /* This function must be overridden by the MyCreature class, because it implements
-     the AgentFunction which controls creature behavoiur.  This behaviour
-     should be governed by the model (that you need to come up with) that is
-     parameterise by the chromosome.  
+       Input: numPercept - number of percepts that creature will be receiving
+       numAction - number of action output vector that creature will need
+       to produce on every turn
+    */
+    public MyCreature(int numPercepts, int numActions) {
+        this.chromosome = new int[CHROMOSOME_SIZE];
+
+        for (int i = 0; i < CHROMOSOME_SIZE; i++) {
+            this.chromosome[i] = rand.nextInt(10) - 5;
+        }
+    }
+
+
+    
+    public MyCreature(MyCreature mother, MyCreature farther) {
+        this.chromosome = new int[CHROMOSOME_SIZE];
+        int switch_point = rand.nextInt(CHROMOSOME_SIZE - 1) + 1;
+
+        for (int i = 0; i < switch_point; i++) {
+            this.chromosome[i] = mother.chromosome[i];
+        }
+        
+
+        for (int i = switch_point; i < 7; i++) {
+            this.chromosome[i] = farther.chromosome[i];
+        }
+    }
   
-     Input: percepts - an array of percepts
-            numPercepts - the size of the array of percepts depend on the percept
-                          chosen
-            numExpectedAction - this number tells you what the expected size
-                                of the returned array of percepts should bes
-     Returns: an array of actions 
-  */
-  @Override
-  public float[] AgentFunction(int[] percepts, int numPercepts, int numExpectedActions) {
+    /* This function must be overridden by the MyCreature class, because it implements
+       the AgentFunction which controls creature behavoiur.  This behaviour
+       should be governed by the model (that you need to come up with) that is
+       parameterise by the chromosome.  
+  
+       Input: percepts - an array of percepts
+       numPercepts - the size of the array of percepts depend on the percept
+       chosen
+       numExpectedAction - this number tells you what the expected size
+       of the returned array of percepts should bes
+       Returns: an array of actions 
+    */
+    @Override
+    public float[] AgentFunction(int[] percepts, int numPercepts, int numExpectedActions) {
+
       
-      // This is where your chromosome gives rise to the model that maps
-      // percepts to actions.  This function governs your creature's behaviour.
-      // You need to figure out what model you want to use, and how you're going
-      // to encode its parameters in a chromosome.
+        // This is where your chromosome gives rise to the model that maps
+        // percepts to actions.  This function governs your creature's behaviour.
+        // You need to figure out what model you want to use, and how you're going
+        // to encode its parameters in a chromosome.
       
-      // At the moment, the actions are chosen completely at random, ignoring
-      // the percepts.  You need to replace this code.
-      float actions[] = new float[numExpectedActions];
-      for(int i=0;i<numExpectedActions;i++) {
-         actions[i]=rand.nextFloat();
-      } 
-      return actions;
-  }
+        // At the moment, the actions are chosen completely at random, ignoring
+        // the percepts.  You need to replace this code.
+        float actions[] = new float[numExpectedActions];
+        for(int i = 1; i < numPercepts; i++) {
+
+            // If we are looking at the current tile
+            if (i == 4) {
+                if (percepts[4] == 1) {
+                    actions[9] = chromosome[EAT_GREEN];
+                } else {
+                    actions[9] = chromosome[EAT_RED];
+                }
+            }
+            
+            // If we are looking at another tile
+            if (percepts[i] == 0) {
+                actions[i] = chromosome[EMPTY];
+            }
+
+            if (percepts[i] == 1) {
+                actions[i] = chromosome[ENEMY];
+            }
+
+            if (percepts[i] == 2) {
+                actions[i] = chromosome[FRIEND];
+            }
+
+            if (percepts[i] == 3) {
+                actions[i] = chromosome[FIND_FOOD];
+            }
+            
+        }
+
+        actions[numExpectedActions - 1] = this.chromosome[EXPLORE];
+          
+        return actions;
+    }
+
+
+    public float getGene(int i) {
+        return this.chromosome[i];
+    }
   
 }

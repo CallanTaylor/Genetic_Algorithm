@@ -89,7 +89,7 @@ public class MyWorld extends World {
         // your own that initialises an array of size numCreatures and creates
         // a population of your creatures
         MyCreature[] population = new MyCreature[numCreatures];
-        for(int i=0;i<numCreatures;i++) {
+        for (int i = 0; i < numCreatures; i++) {
             population[i] = new MyCreature(numPercepts, numActions);     
         }
         return population;
@@ -117,29 +117,18 @@ public class MyWorld extends World {
     */  
     @Override
     public MyCreature[] nextGeneration(Creature[] old_population_btc, int numCreatures) {
-        // Typcast old_population of Creatures to array of MyCreatures
         MyCreature[] old_population = (MyCreature[]) old_population_btc;
-        // Create a new array for the new population
         MyCreature[] new_population = new MyCreature[numCreatures];
      
-        // Here is how you can get information about the old creatures and how
-        // well they did in the simulation
+
         float avgLifeTime=0f;
         int nSurvivors = 0;
         for(MyCreature creature : old_population) {
-            // The energy of the creature.  This is zero if a creature starved to
-            // death, non-negative otherwise.  If this number is non-zero, but the 
-            // creature is dead, then this number gives the energy of the creature
-            // at the time of death.
-            int energy = creature.getEnergy();
 
-            // This querry can tell you if the creature died during the simulation
-            // or not.  
+            int energy = creature.getEnergy();
             boolean dead = creature.isDead();
         
             if(dead) {
-                // If the creature died during simulation, you can determine
-                // its time of death (in units of turns)
                 int timeOfDeath = creature.timeOfDeath();
                 avgLifeTime += (float) timeOfDeath;
             } else {
@@ -148,23 +137,18 @@ public class MyWorld extends World {
             }
         }
 
-        // Right now the information is used to print some stats...but you should
-        // use this information to access creatures' fitness.  It's up to you how
-        // you define your fitness function.  You should add a print out or
-        // some visual display of the average fitness over generations.
         avgLifeTime /= (float) numCreatures;
         System.out.println("Simulation stats:");
         System.out.println("  Survivors    : " + nSurvivors + " out of " + numCreatures);
         System.out.println("  Avg life time: " + avgLifeTime + " turns");
 
-
-        // Create a total fitness value that can be used to express the
-        // probability of a creature being choosen out of 1.
         float total_fitness = 0;
         for (MyCreature creature : old_population) {
             total_fitness += fitness(creature);
         }
 
+        System.out.println("Average fitness: " + total_fitness / numCreatures);
+        
         float[] creature_probabilities = new float[numCreatures];
 
         // Gives each creature a probability out of 1 of being selected based on
@@ -173,19 +157,48 @@ public class MyWorld extends World {
             creature_probabilities[i] = fitness(old_population[i]) / total_fitness;
         }
 
-        // elitism_probability will give a value from (-0.95, 0.5) so there will
-        // be a 1/20 change of it being greater than 0.
-        float elitism_probabilty = r.nextFloat() - 0.95;
+        insertionSort(creature_probabilities);
 
+        float[] cummulative_fitness = new float[numCreatures];
+        float sum_of_fitness = 0;
+
+        MyCreature best = null;
+        float best_score = 0;
+        
         for (int i = 0; i < numCreatures; i++) {
-            if (elitism_probabilty > 0) {
-                new_population[i] = chooseParent(old_population, creature_probabilities);
-            } else {
-                MyCreature mother = chooseParent(old_population, creature_probabilities);
-                MyCreature farther = chooseParent(old_population, creature_probabilities);
-                new_population[i] = new MyCreature(mother, farther);
+            sum_of_fitness += creature_probabilities[i];
+            cummulative_fitness[i] = sum_of_fitness;
+            if (creature_probabilities[i] > best_score) {
+                best = old_population[i];
+                best_score = creature_probabilities[i];
             }
         }
+
+        
+
+        for (int i = 0; i < numCreatures; i++) {
+
+            float elitism_probabilty = r.nextInt(10);
+            if (elitism_probabilty == 1) {
+                new_population[i] = best;
+            }
+
+    
+            //MyCreature mother = chooseParent(old_population, cummulative_fitness);
+            //MyCreature farther = chooseParent(old_population, cummulative_fitness);
+            
+
+            MyCreature mother = tournamentSelection(old_population, numCreatures);
+            MyCreature farther = tournamentSelection(old_population, numCreatures);
+
+            //MyCreature mother = chooseMum(old_population, numCreatures);
+            //MyCreature farther = chooseDad(old_population, numCreatures);
+            
+            new_population[i] = new MyCreature(mother, farther);
+        }
+
+        //printAverageChromosome(old_population);
+        
         return new_population;
     }
 
@@ -198,10 +211,9 @@ public class MyWorld extends World {
         int fitness = 0;
 
         if (c.isDead()) {
-            fitness += c.timeOfDeath();
-            fitness += c.getEnergy();
+            fitness = c.getEnergy()/ 10;
         } else {
-            fitness += 2 * c.getEnergy();
+            fitness = c.getEnergy();
             fitness += 100;
         }
         return fitness;
@@ -216,16 +228,93 @@ public class MyWorld extends World {
        the slice of the wheel of each creature to see if the wheel 'choose' that
        creature.
     */
-    public MyCreature chooseParent(MyCreature[] old_population, float[] creature_probabilities) {
+    public MyCreature chooseParent(MyCreature[] old_population, float[] cummulative_fitness) {
 
-        float cummulative_probability = 0.0;
+        float roulette_spin = r.nextFloat();
+        MyCreature winner = null;
 
-        for (int i = 0; i < numCreatures; i++) {
-            float roulette_spin = r.nextFloat();
-            cummulative_probability += creature_probabilities[i];
-            if (roulette_spin < cummulative_probability) {
-                return old_populations[i];
+        for (int i = old_population.length - 1; i >= 0; i--) {
+            if (cummulative_fitness[i] >= roulette_spin ) {
+                winner = old_population[i];
             }
         }
+        return winner;
     }
+
+    public void insertionSort(float[] keys) {
+
+        for (int i = 1; i < keys.length; i++) {
+            float key = keys[i];
+            int j = i - 1;
+            while (j >= 0 && keys[j] > key) {
+                keys[j + 1] = keys[j];
+                j = j - 1;
+            }
+            keys[j + 1] = key;
+        }
+    }
+
+    public MyCreature tournamentSelection(MyCreature[] old_population, int numCreatures) {
+        int rand_point = rand.nextInt(numCreatures - 6) + 3;
+        MyCreature winner = old_population[rand_point];
+        float best = 0;
+        
+        for (int i = rand_point - 3; i < rand_point + 3; i++) {
+            //System.out.println("Creature [" + i + "] has fitness : " + fitness(old_population[i]));
+            if (fitness(old_population[i]) > best) {
+                best = fitness(old_population[i]);
+                winner = old_population[i];
+            }
+        }
+
+        //System.out.println("Winner fitness: " + fitness(winner));
+        return winner;
+    }
+
+    public void printAverageChromosome(MyCreature[] old_population) {
+        float []chromosome = new float[7];
+
+        for (int i = 0; i < 7; i++) {
+            chromosome[i] = 0;
+            for (int j = 0; j < old_population.length; j++) {
+                chromosome[i] += old_population[j].getGene(i);
+            }
+            chromosome[i] = chromosome[i] / old_population.length;
+        }
+
+        for (int i = 0; i < 7; i++) {
+            System.out.println("Average for gene: " + i + " == " + chromosome[i]);
+        }
+    }
+
+
+    public MyCreature chooseMum(MyCreature[] old_population, int numCreatures) {
+        float best = 0;
+        MyCreature winner = null;
+
+        for (int i = 0; i < numCreatures / 2; i++) {
+            if (fitness(old_population[i]) > best) {
+                best = fitness(old_population[i]);
+                winner = old_population[i];
+            }
+        }
+        return winner;
+    }
+
+    
+    public MyCreature chooseDad(MyCreature[] old_population, int numCreatures) {
+        float best = 0;
+        MyCreature winner = null;
+
+        for (int i = numCreatures / 2; i < numCreatures; i++) {
+            if (fitness(old_population[i]) > best) {
+                best = fitness(old_population[i]);
+                winner = old_population[i];
+            }
+        }
+        return winner;
+    }
+
 }
+
+

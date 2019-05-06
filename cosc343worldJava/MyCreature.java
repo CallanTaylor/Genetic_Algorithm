@@ -14,7 +14,7 @@ public class MyCreature extends Creature {
 
     // Random number generator
     Random rand = new Random();
-    private float[] chromosome;
+    private int[] chromosome;
 
     private static final int CHROMOSOME_SIZE = 7;
 
@@ -34,24 +34,26 @@ public class MyCreature extends Creature {
        to produce on every turn
     */
     public MyCreature(int numPercepts, int numActions) {
-        chromosome = new float[CHROMOSOME_SIZE];
+        this.chromosome = new int[CHROMOSOME_SIZE];
 
         for (int i = 0; i < CHROMOSOME_SIZE; i++) {
-            chromosome[i] = rand.nextFloat();
+            this.chromosome[i] = rand.nextInt(10) - 5;
         }
     }
 
 
     
     public MyCreature(MyCreature mother, MyCreature farther) {
-        chomosome = new float[CHROMOSOME_SIZE];
+        this.chromosome = new int[CHROMOSOME_SIZE];
+        int switch_point = rand.nextInt(CHROMOSOME_SIZE - 1) + 1;
 
-        for (int i = 0; i < 4; i++) {
-            chromosome[i] = mother.chromosome[i];
+        for (int i = 0; i < switch_point; i++) {
+            this.chromosome[i] = mother.chromosome[i];
         }
+        
 
-        for (int i = 4; i < 7; i++) {
-            chromosome[i] = farther.chromosome[i];
+        for (int i = switch_point; i < 7; i++) {
+            this.chromosome[i] = farther.chromosome[i];
         }
     }
   
@@ -79,41 +81,41 @@ public class MyCreature extends Creature {
         // At the moment, the actions are chosen completely at random, ignoring
         // the percepts.  You need to replace this code.
         float actions[] = new float[numExpectedActions];
-        for(int i = 1; i < numPercepts; i++) {
 
-            // Percept detects nothing
-            if (percepts[i] == 0) {
-                actions[i] = chromosome[EMPTY];
+        for (int i = 1; i < numPercepts; i++) {
+
+            // If we are looking at the current tile
+            if (i == 4) {
+                if (percepts[4] == 0) {
+                    actions[9] = 0;
+                } else if (percepts[4] == 1) {
+                    actions[9] = chromosome[EAT_GREEN];
+                } else {
+                    actions[9] = chromosome[EAT_RED];
+                }
             }
+            
+            // If we are looking at another tile
 
-            // Percept detects a moster
             if (percepts[i] == 1) {
                 actions[i] = chromosome[ENEMY];
             }
 
-            // Percept detects a friend
-            if (percepts[i] == 2) {
-                actions[i] = chromosome[FRIEND];
-            }
-
-            // Percept detetcts food
             if (percepts[i] == 3) {
                 actions[i] = chromosome[FIND_FOOD];
             }
+            
         }
 
-        if (percepts[0] == 0) {
-            actions[numPercepts] = 0;
-        } else if (percepts[0] == 1) {
-            actions[numPercepts] = chromosome[EAT_GREEN];
-        } else {
-            actions[numPercepts] = chromosome[EAT_RED];
-        }
 
         actions[numExpectedActions - 1] = chromosome[EXPLORE];
-
           
         return actions;
+    }
+
+
+    public float getGene(int i) {
+        return this.chromosome[i];
     }
   
 }
