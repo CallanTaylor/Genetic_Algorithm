@@ -102,12 +102,7 @@ public class MyCreature extends Creature {
                 }
             }
         }
-        
-      
-        
         actions[10] = chromosome[CURIOSITY];
-
-
         return actions;
     }
 

@@ -79,16 +79,13 @@ public class MyWorld extends World {
 
         int numPercepts = this.expectedNumberofPercepts();
         int numActions = this.expectedNumberofActions();
-      
-        // This is just an example code.  You may replace this code with
-        // your own that initialises an array of size numCreatures and creates
-        // a population of your creatures
         MyCreature[] population = new MyCreature[numCreatures];
         for (int i = 0; i < numCreatures; i++) {
             population[i] = new MyCreature(numPercepts, numActions);     
         }
         return population;
     }
+    
   
     /* The MyWorld class must override this function, which is
        used to fetch the next generation of creatures.  This World will
@@ -209,21 +206,9 @@ public class MyWorld extends World {
     }
 
 
-    /* Unit test ensures fitness sums to 1 */
-    public boolean fitness_unit_test(float[] fitness) {
-        float total = 0;
-        for (int i = 0; i < fitness.length; i++) {
-            total += fitness[i];
-        }
-
-        if (total < 0.98 || total > 1.02) {
-            return false;
-        }
-
-        return true;
-    }
-
-
+    /* rouletteSpin picks a parent from the previous generation by
+       radnomly selecting a value from the range of fitness.   
+     */
     public int rouletteSpin(float[] fitness) {
 
         float spin = r.nextFloat() * fitness[fitness.length - 1];
@@ -245,6 +230,10 @@ public class MyWorld extends World {
         return winner;
     }
 
+    
+    /* getBestCreature simply returns the creature from a generation which
+       did the best of any to be used for elitism.
+     */
     public int getBestCreature(float[] fitness) {
 
         int best = 0;
