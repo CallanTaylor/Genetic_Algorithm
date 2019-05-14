@@ -1,6 +1,7 @@
 import cosc343.assig2.World;
 import cosc343.assig2.Creature;
 import java.util.*;
+import java.lang.Math.*;
 
 /**
  * The MyWorld extends the cosc343 assignment 2 World.  Here you can set 
@@ -79,16 +80,13 @@ public class MyWorld extends World {
 
         int numPercepts = this.expectedNumberofPercepts();
         int numActions = this.expectedNumberofActions();
-      
-        // This is just an example code.  You may replace this code with
-        // your own that initialises an array of size numCreatures and creates
-        // a population of your creatures
         MyCreature[] population = new MyCreature[numCreatures];
         for (int i = 0; i < numCreatures; i++) {
             population[i] = new MyCreature(numPercepts, numActions);     
         }
         return population;
     }
+    
   
     /* The MyWorld class must override this function, which is
        used to fetch the next generation of creatures.  This World will
@@ -156,11 +154,6 @@ public class MyWorld extends World {
         gene_average /= 34;
         gene.add(gene_average);
 
-        if (fitness_unit_test(individual_normalised_fitness) == false) {
-            System.out.println("Error: Normalised fitness does not sum to 1");
-        }
-
-
         
 
         for (int i = 0; i < numCreatures; i++) {
@@ -173,18 +166,21 @@ public class MyWorld extends World {
             }
         }
 
+        /*
         for (int i = 0; i < results.size(); i++) {
             System.out.println(results.get(i));
         }
-
+        
+        
         for (int i = 0; i < surviving.size(); i++) {
             System.out.println(surviving.get(i));
         }
-
+        */
         for (int i = 0; i < gene.size(); i++) {
             System.out.println(gene.get(i));
         }
-
+        
+       
         return new_population;
     }
 
@@ -198,10 +194,10 @@ public class MyWorld extends World {
 
  
         if (!c.isDead()) {
-            fitness += 200;
+            fitness += 2 * Math.pow(10, 2);
             fitness += c.getEnergy() * 2;
         } else {
-            fitness += c.timeOfDeath();
+            fitness += Math.pow((c.timeOfDeath() / 10), 2) ;
             fitness += c.getEnergy();
         }
         
@@ -209,21 +205,9 @@ public class MyWorld extends World {
     }
 
 
-    /* Unit test ensures fitness sums to 1 */
-    public boolean fitness_unit_test(float[] fitness) {
-        float total = 0;
-        for (int i = 0; i < fitness.length; i++) {
-            total += fitness[i];
-        }
-
-        if (total < 0.98 || total > 1.02) {
-            return false;
-        }
-
-        return true;
-    }
-
-
+    /* rouletteSpin picks a parent from the previous generation by
+       radnomly selecting a value from the range of fitness.   
+     */
     public int rouletteSpin(float[] fitness) {
 
         float spin = r.nextFloat() * fitness[fitness.length - 1];
@@ -245,6 +229,10 @@ public class MyWorld extends World {
         return winner;
     }
 
+    
+    /* getBestCreature simply returns the creature from a generation which
+       did the best of any to be used for elitism.
+     */
     public int getBestCreature(float[] fitness) {
 
         int best = 0;

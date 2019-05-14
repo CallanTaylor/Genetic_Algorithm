@@ -1,6 +1,7 @@
 import cosc343.assig2.World;
 import cosc343.assig2.Creature;
 import java.util.*;
+import java.lang.Math.*;
 
 /**
  * The MyWorld extends the cosc343 assignment 2 World.  Here you can set 
@@ -15,9 +16,10 @@ import java.util.*;
 public class MyWorld extends World {
 
     Random r = new Random();
+
+    
     private static ArrayList<Float> results = new ArrayList<Float>();
     private static ArrayList<Integer> surviving = new ArrayList<Integer>();
-
     private static ArrayList<Float> gene = new ArrayList<Float>();
  
     /* Here you can specify the number of turns in each simulation
@@ -153,11 +155,6 @@ public class MyWorld extends World {
         gene_average /= 34;
         gene.add(gene_average);
 
-        if (fitness_unit_test(individual_normalised_fitness) == false) {
-            System.out.println("Error: Normalised fitness does not sum to 1");
-        }
-
-
         
 
         for (int i = 0; i < numCreatures; i++) {
@@ -170,18 +167,21 @@ public class MyWorld extends World {
             }
         }
 
+        /*
         for (int i = 0; i < results.size(); i++) {
             System.out.println(results.get(i));
         }
-
+        
+        
         for (int i = 0; i < surviving.size(); i++) {
             System.out.println(surviving.get(i));
         }
-
+        */
         for (int i = 0; i < gene.size(); i++) {
             System.out.println(gene.get(i));
         }
-
+        
+       
         return new_population;
     }
 
@@ -195,10 +195,10 @@ public class MyWorld extends World {
 
  
         if (!c.isDead()) {
-            fitness += 200;
+            fitness += 2 * Math.pow(10, 2);
             fitness += c.getEnergy() * 2;
         } else {
-            fitness += c.timeOfDeath();
+            fitness += Math.pow((c.timeOfDeath() / 10), 2) ;
             fitness += c.getEnergy();
         }
         

@@ -15,15 +15,19 @@ public class MyCreature extends Creature {
     // Random number generator
     Random rand = new Random();
     private float[] chromosome;
+    private int last_move;
 
-    private static final int CHROMOSOME_SIZE = 5;
+    private static final int CHROMOSOME_SIZE = 8;
 
     private static final int FEAR = 0;
     private static final int HUNGER = 1;
     private static final int CURIOSITY = 2;
+    private static final int CAUTION = 3;
+    private static final int EXPLORE = 4;
+    private static final int BOREDOM = 5;
     
-    private static final int EAT_RED = 3;
-    private static final int EAT_GREEN = 4;
+    private static final int EAT_RED = 6;
+    private static final int EAT_GREEN = 7;
 
 
     /* default constructor for MyCreature
@@ -79,15 +83,37 @@ public class MyCreature extends Creature {
             if (i != 4) {
 
                 if (percepts[i] == 0) {
-                    actions[i] = chromosome[CURIOSITY];
+                    actions[i] += chromosome[EXPLORE];
                 }
 
                 if (percepts[i] == 1) {
-                    actions[i] = chromosome[FEAR];
+                    actions[i] -= chromosome[FEAR];
+
+                    // Caution is mapped to tiles adjacent to a moster
+                    if (i == 0) {
+                        actions[i + 1] -= chromosome[CAUTION];
+                        actions[i + 3] -= chromosome[CAUTION];
+                    } else if (i == 1 || i == 7) {
+                        actions[i - 1] -= chromosome[CAUTION];
+                        actions[i + 1] -= chromosome[CAUTION];
+                    } else if (i == 2) {
+                        actions[i - 1] -= chromosome[CAUTION];
+                        actions[i + 3] -= chromosome[CAUTION];
+                    } else if (i == 3 || i == 5) {
+                        actions[i - 3] -= chromosome[CAUTION];
+                        actions[i + 3] -= chromosome[CAUTION];
+                    } else if (i == 6) {
+                        actions[i - 3] -= chromosome[CAUTION];
+                        actions[i + 1] -= chromosome[CAUTION];
+                    } else if (i == 8) {
+                        actions[i - 3] -= chromosome[CAUTION];
+                        actions[i - 1] -= chromosome[CAUTION];
+                    }
+     
                 }
 
                 if (percepts[i] == 3) {
-                    actions[i] = chromosome[HUNGER];
+                    actions[i] += chromosome[HUNGER];
                 }
             }
 
@@ -102,10 +128,27 @@ public class MyCreature extends Creature {
                 }
             }
         }
+
+        // Last action was a movement
+        if (last_move < 9) {
+            actions[8 - last_move] -= chromosome[BOREDOM];
+        }
         
-      
+
+        // Memory
         
         actions[10] = chromosome[CURIOSITY];
+
+        int move = 0;
+        float max = 0;
+        for (int i = 0; i < numExpectedActions; i++) {
+            if (actions[i] > max) {
+                max = actions[i];
+                move = i;
+            }
+        }
+
+        last_move = move;
 
 
         return actions;
@@ -113,8 +156,8 @@ public class MyCreature extends Creature {
 
     public float new_gene(float seed) {
 
-        float min = (seed - (seed / 5));
-        float max = (seed + (seed / 5));
+        float min = (seed - (seed / 10));
+        float max = (seed + (seed / 10));
         
         float new_gene = min + rand.nextFloat() * (max - min);
 
