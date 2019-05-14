@@ -16,10 +16,14 @@ import java.lang.Math.*;
 public class MyWorld extends World {
 
     Random r = new Random();
-    private static ArrayList<Float> results = new ArrayList<Float>();
-    private static ArrayList<Integer> surviving = new ArrayList<Integer>();
 
-    private static ArrayList<Float> gene = new ArrayList<Float>();
+    
+    // ArrayLists used for recording the performance of algorithm to graph results
+      
+    // private static ArrayList<Float> results = new ArrayList<Float>();
+    // private static ArrayList<Integer> surviving = new ArrayList<Integer>();
+    // private static ArrayList<Float> gene = new ArrayList<Float>();
+    
  
     /* Here you can specify the number of turns in each simulation
      * and the number of generations that the genetic algorithm will 
@@ -114,11 +118,7 @@ public class MyWorld extends World {
         MyCreature[] new_population = new MyCreature[numCreatures];
 
         float total_fitness = 0;
-
-        float average_fitness = 0;
         int survivors = 0;
-
-        float gene_average = 0;
 
         for (MyCreature creature : old_population) {
             total_fitness += fitness(creature);
@@ -126,12 +126,10 @@ public class MyWorld extends World {
                 survivors++;
             }
         }
-        surviving.add(survivors);
-        
+
         System.out.println("Survivors " + survivors + "/34");
         System.out.println("Average: " + total_fitness / 34);
 
-        results.add(total_fitness / 34);
 
 
         // Parent Selection for next generation
@@ -142,17 +140,11 @@ public class MyWorld extends World {
         float previous_creature_fitness = 0;
         
         for (int i = 0; i < numCreatures; i++) {
-            gene_average += old_population[i].getGene(0);
             individual_normalised_fitness[i] = fitness(old_population[i]) / total_fitness;
-            
             cummulative_fitness[i] = individual_normalised_fitness[i]
                 + previous_creature_fitness;
-            previous_creature_fitness = cummulative_fitness[i];
-            
+            previous_creature_fitness = cummulative_fitness[i];         
         }
-
-        gene_average /= 34;
-        gene.add(gene_average);
 
         
 
@@ -165,21 +157,6 @@ public class MyWorld extends World {
                 new_population[i] = new MyCreature(old_population[mother], old_population[farther]);
             }
         }
-
-        /*
-        for (int i = 0; i < results.size(); i++) {
-            System.out.println(results.get(i));
-        }
-        
-        
-        for (int i = 0; i < surviving.size(); i++) {
-            System.out.println(surviving.get(i));
-        }
-        */
-        for (int i = 0; i < gene.size(); i++) {
-            System.out.println(gene.get(i));
-        }
-        
        
         return new_population;
     }
@@ -212,11 +189,6 @@ public class MyWorld extends World {
 
         float spin = r.nextFloat() * fitness[fitness.length - 1];
         int winner = 0;
-
-        if (spin < 0 || spin > 1) {
-            System.out.println("Error: Spin out of valid range");
-        }
-
         float previous_creature = 0;
         
         for (int i = 0; i < fitness.length; i++) {

@@ -82,10 +82,12 @@ public class MyCreature extends Creature {
 
             if (i != 4) {
 
+                // Explore empty tiles
                 if (percepts[i] == 0) {
                     actions[i] += chromosome[EXPLORE];
                 }
 
+                // Fear mosters
                 if (percepts[i] == 1) {
                     actions[i] -= chromosome[FEAR];
 
@@ -112,6 +114,7 @@ public class MyCreature extends Creature {
      
                 }
 
+                // Hunger for strawberries
                 if (percepts[i] == 3) {
                     actions[i] += chromosome[HUNGER];
                 }
@@ -119,17 +122,20 @@ public class MyCreature extends Creature {
 
             else {
 
+                // Desire to eat unripe food
                 if (percepts[i] == 1) {
                     actions[9] = chromosome[EAT_GREEN];
                 }
 
+                // Desire to eat ripe food
                 if (percepts[4] == 2) {
                     actions[9] = chromosome[EAT_RED];
                 }
             }
         }
 
-        // Last action was a movement
+        // If last action was a movement then subtract
+        // from the desire to return to same tile
         if (last_move < 9) {
             actions[8 - last_move] -= chromosome[BOREDOM];
         }
@@ -154,6 +160,8 @@ public class MyCreature extends Creature {
         return actions;
     }
 
+    /* create a new gene within %10 range of old
+     */
     public float new_gene(float seed) {
 
         float min = (seed - (seed / 10));
@@ -162,9 +170,5 @@ public class MyCreature extends Creature {
         float new_gene = min + rand.nextFloat() * (max - min);
 
         return new_gene;
-    }
-
-    public float getGene(int i) {
-        return chromosome[i];
     }
 }
